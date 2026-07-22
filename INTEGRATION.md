@@ -50,7 +50,14 @@ gateway → reservations subgraph
 
 ## Running locally
 
+First create each service's `.env` from its template (real secrets are not
+committed — see `apps/*/.env.example`):
+
 ```bash
+for d in auth gateway notifications payments reservations; do
+  cp "apps/$d/.env.example" "apps/$d/.env"
+done
+# then fill in real STRIPE_SECRET_KEY / Google OAuth creds where needed
 docker-compose up --build
 ```
 

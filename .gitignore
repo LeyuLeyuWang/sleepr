@@ -3,6 +3,9 @@
 **/node_modules
 .pnpm-store/
 
+# env files (real secrets) — use the committed .env.example templates instead
+**/.env
+
 # Logs
 logs
 *.log
