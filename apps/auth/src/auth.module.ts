@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { HealthModule, LoggerModule } from '@app/common';
+import { HealthModule, LoggerModule, RmqModule } from '@app/common';
 import { JwtModule } from '@nestjs/jwt';
 import * as Joi from 'joi';
 import { AuthController } from './auth.controller';
@@ -22,9 +22,11 @@ import { ApolloDriverConfig, ApolloFederationDriver } from '@nestjs/apollo';
         JWT_SECRET: Joi.string().required(),
         JWT_EXPIRATION: Joi.string().required(),
         HTTP_PORT: Joi.number().required(),
-        TCP_PORT: Joi.number().required(),
+        RABBITMQ_URI: Joi.string().required(),
+        AUTH_USER_CACHE_TTL: Joi.number().default(0),
       }),
     }),
+    RmqModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloFederationDriver,
       autoSchemaFile: {

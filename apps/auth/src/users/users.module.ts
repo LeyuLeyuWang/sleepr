@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import { DatabaseModule, UserDocument, UserSchema } from '@app/common';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -11,6 +12,7 @@ import { UsersResolver } from './users.resolver';
     DatabaseModule.forFeature([
       { name: UserDocument.name, schema: UserSchema },
     ]),
+    CacheModule.register(),
   ],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository, UsersResolver],

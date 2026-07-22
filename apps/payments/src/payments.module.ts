@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import { LoggerModule, NOTIFICATIONS_SERVICE } from '@app/common';
+import { LoggerModule, NOTIFICATIONS_SERVICE, RmqModule } from '@app/common';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriverConfig, ApolloFederationDriver } from '@nestjs/apollo';
 import { PaymentsResolver } from './payments.resolver';
@@ -14,9 +13,8 @@ import { PaymentsResolver } from './payments.resolver';
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
-        PORT_TCP: Joi.number().required(),
-        NOTIFICATIONS_HOST: Joi.string().required(),
-        NOTIFICATIONS_PORT: Joi.number().required(),
+        PORT_HTTP: Joi.number().required(),
+        RABBITMQ_URI: Joi.string().required(),
         STRIPE_SECRET_KEY: Joi.string().required(),
       }),
     }),
@@ -27,19 +25,7 @@ import { PaymentsResolver } from './payments.resolver';
       },
     }),
     LoggerModule,
-    ClientsModule.registerAsync([
-      {
-        name: NOTIFICATIONS_SERVICE,
-        useFactory: (configService: ConfigService) => ({
-          transport: Transport.TCP,
-          options: {
-            host: configService.get('NOTIFICATIONS_HOST'),
-            port: configService.get('NOTIFICATIONS_PORT'),
-          },
-        }),
-        inject: [ConfigService],
-      },
-    ]),
+    RmqModule.register({ name: NOTIFICATIONS_SERVICE }),
   ],
   controllers: [PaymentsController],
   providers: [PaymentsService, PaymentsResolver],

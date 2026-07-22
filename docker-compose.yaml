@@ -7,10 +7,16 @@ services:
     command: pnpm run start:dev reservations
     env_file:
       - ./apps/reservations/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_started
     ports:
       - '3000:3000'
     volumes:
       - .:/usr/src/app
+      - /usr/src/app/node_modules
   auth:
     build:
       context: .
@@ -19,10 +25,16 @@ services:
     command: pnpm run start:dev auth
     env_file:
       - ./apps/auth/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_started
     ports:
       - '3001:3001'
     volumes:
       - .:/usr/src/app
+      - /usr/src/app/node_modules
   payments:
     build:
       context: .
@@ -31,8 +43,12 @@ services:
     command: pnpm run start:dev payments
     env_file:
       - ./apps/payments/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     volumes:
       - .:/usr/src/app
+      - /usr/src/app/node_modules
   notifications:
     build:
       context: .
@@ -41,8 +57,12 @@ services:
     command: pnpm run start:dev notifications
     env_file:
       - ./apps/notifications/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     volumes:
       - .:/usr/src/app
+      - /usr/src/app/node_modules
   gateway:
     build:
       context: .
@@ -51,9 +71,24 @@ services:
     command: pnpm run start:dev gateway
     env_file:
       - ./apps/gateway/.env
+    depends_on:
+      - reservations
+      - auth
+      - payments
     volumes:
       - .:/usr/src/app
+      - /usr/src/app/node_modules
     ports:
       - '3004:3004'
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
   mongo:
     image: mongo

@@ -8,14 +8,14 @@ import {
   AUTH_SERVICE,
   PAYMENTS_SERVICE,
   HealthModule,
+  RmqModule,
 } from '@app/common';
 import { ReservationsRepository } from './reservations.repository';
 import {
   ReservationDocument,
   ReservationSchema,
 } from './models/reservation.schema';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import {
   ApolloFederationDriver,
@@ -41,36 +41,11 @@ import { ReservationsResolver } from './reservations.resolver';
       validationSchema: Joi.object({
         MONGODB_URI: Joi.string().required(),
         PORT: Joi.number().required(),
-        AUTH_HOST: Joi.string().required(),
-        PAYMENTS_HOST: Joi.string().required(),
-        AUTH_PORT: Joi.number().required(),
-        PAYMENTS_PORT: Joi.number().required(),
+        RABBITMQ_URI: Joi.string().required(),
       }),
     }),
-    ClientsModule.registerAsync([
-      {
-        name: AUTH_SERVICE,
-        useFactory: (configService: ConfigService) => ({
-          transport: Transport.TCP,
-          options: {
-            host: configService.get('AUTH_HOST'),
-            port: configService.get('AUTH_PORT'),
-          },
-        }),
-        inject: [ConfigService],
-      },
-      {
-        name: PAYMENTS_SERVICE,
-        useFactory: (configService: ConfigService) => ({
-          transport: Transport.TCP,
-          options: {
-            host: configService.get('PAYMENTS_HOST'),
-            port: configService.get('PAYMENTS_PORT'),
-          },
-        }),
-        inject: [ConfigService],
-      },
-    ]),
+    RmqModule.register({ name: AUTH_SERVICE }),
+    RmqModule.register({ name: PAYMENTS_SERVICE }),
     HealthModule,
   ],
   controllers: [ReservationsController],
